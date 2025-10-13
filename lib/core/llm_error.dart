@@ -10,6 +10,14 @@ abstract class LLMError implements Exception {
   String toString() => message;
 }
 
+/// Request cancelled error
+class CancelledError extends LLMError {
+  const CancelledError(super.message);
+
+  @override
+  String toString() => 'Request cancelled: $message';
+}
+
 /// HTTP request/response errors
 class HttpError extends LLMError {
   const HttpError(super.message);
@@ -306,7 +314,7 @@ class DioErrorHandler {
           return ProviderError('$providerName HTTP error: $data');
         }
       case DioExceptionType.cancel:
-        return GenericError('Request was cancelled');
+        return CancelledError(e.message ?? 'Request was cancelled');
       case DioExceptionType.connectionError:
         return HttpError('Connection error: ${e.message}');
       case DioExceptionType.badCertificate:
