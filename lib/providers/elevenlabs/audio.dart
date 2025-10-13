@@ -133,8 +133,8 @@ class ElevenLabsAudio extends BaseAudioCapability {
   }
 
   @override
-  Future<List<VoiceInfo>> getVoices() async {
-    final rawVoices = await _getVoicesRaw();
+  Future<List<VoiceInfo>> getVoices({CancelToken? cancelToken}) async {
+    final rawVoices = await _getVoicesRaw(cancelToken: cancelToken);
 
     return rawVoices.map((voice) {
       return VoiceInfo(
@@ -487,8 +487,10 @@ class ElevenLabsAudio extends BaseAudioCapability {
   }
 
   /// Get available voices (internal method)
-  Future<List<Map<String, dynamic>>> _getVoicesRaw() async {
-    final responseData = await client.getJson('voices');
+  Future<List<Map<String, dynamic>>> _getVoicesRaw(
+      {CancelToken? cancelToken}) async {
+    final responseData =
+        await client.getJson('voices', cancelToken: cancelToken);
     final voices = responseData['voices'] as List<dynamic>? ?? [];
     return voices.cast<Map<String, dynamic>>();
   }

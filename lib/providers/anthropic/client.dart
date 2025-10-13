@@ -52,14 +52,21 @@ class AnthropicClient {
   }
 
   /// Make a GET request and return JSON response
-  Future<Map<String, dynamic>> getJson(String endpoint) async {
-    try {
-      final response = await dio.get(endpoint);
-      return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      logger.severe('HTTP GET request failed: ${e.message}');
-      rethrow;
-    }
+  Future<Map<String, dynamic>> getJson(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    return HttpResponseHandler.getJson(
+      dio,
+      endpoint,
+      providerName: 'Anthropic',
+      logger: logger,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
   }
 
   /// Make a POST request with form data
@@ -85,11 +92,15 @@ class AnthropicClient {
   }
 
   /// Make a GET request and return raw bytes
-  Future<List<int>> getRaw(String endpoint) async {
+  Future<List<int>> getRaw(
+    String endpoint, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await dio.get(
         endpoint,
         options: Options(responseType: ResponseType.bytes),
+        cancelToken: cancelToken,
       );
       return response.data as List<int>;
     } on DioException catch (e) {

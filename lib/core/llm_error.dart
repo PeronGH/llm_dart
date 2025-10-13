@@ -69,6 +69,42 @@ class TimeoutError extends LLMError {
   String toString() => 'Request timeout: $message';
 }
 
+/// Request cancellation error
+class CancelledError extends LLMError {
+  final String? reason;
+
+  CancelledError({String? reason}) : this._internal(_normalizeReason(reason));
+
+  CancelledError._internal(String? normalizedReason)
+      : reason = normalizedReason,
+        super(
+          normalizedReason == null
+              ? 'Request cancelled'
+              : 'Request cancelled: $normalizedReason',
+        );
+
+  static String? _normalizeReason(String? reason) {
+    if (reason == null) return null;
+    final trimmed = reason.trim();
+    if (trimmed.isEmpty) return null;
+
+    final lower = trimmed.toLowerCase();
+    const genericMessages = {
+      'cancelled',
+      'canceled',
+      'request cancelled',
+      'request was cancelled',
+      'request canceled',
+      'request was canceled',
+      'http request cancelled',
+      'http request canceled',
+    };
+
+    if (genericMessages.contains(lower)) return null;
+    return trimmed;
+  }
+}
+
 /// Resource not found error (404)
 class NotFoundError extends LLMError {
   const NotFoundError(super.message);
@@ -306,7 +342,14 @@ class DioErrorHandler {
           return ProviderError('$providerName HTTP error: $data');
         }
       case DioExceptionType.cancel:
-        return GenericError('Request was cancelled');
+        final error = e.error;
+        final reason = e.message ??
+            (error is String
+                ? error
+                : error != null
+                    ? error.toString()
+                    : null);
+        return CancelledError(reason: reason);
       case DioExceptionType.connectionError:
         return HttpError('Connection error: ${e.message}');
       case DioExceptionType.badCertificate:

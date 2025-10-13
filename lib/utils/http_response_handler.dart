@@ -145,6 +145,8 @@ class HttpResponseHandler {
   }
 
   /// Create a standardized getJson method for providers
+  ///
+  /// Supports optional [cancelToken] for request cancellation parity with [postJson].
   static Future<Map<String, dynamic>> getJson(
     Dio dio,
     String endpoint, {
@@ -152,6 +154,7 @@ class HttpResponseHandler {
     Logger? logger,
     Map<String, dynamic>? queryParameters,
     Options? options,
+    CancelToken? cancelToken,
   }) async {
     final provider = providerName ?? 'Unknown';
     final log = logger ?? _logger;
@@ -165,6 +168,7 @@ class HttpResponseHandler {
         endpoint,
         queryParameters: queryParameters,
         options: options,
+        cancelToken: cancelToken,
       );
 
       if (log.isLoggable(Level.FINE)) {

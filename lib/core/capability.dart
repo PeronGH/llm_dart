@@ -752,7 +752,7 @@ abstract class ModelListingCapability {
   /// Get available models from the provider
   ///
   /// Returns a list of available models or throws an LLMError
-  Future<List<AIModel>> models();
+  Future<List<AIModel>> models({CancelToken? cancelToken});
 }
 
 /// Google-specific TTS capability interface
@@ -1048,12 +1048,13 @@ abstract class FileManagementCapability {
   ///
   /// Returns a paginated list of files. Supports both OpenAI-style
   /// and Anthropic-style pagination parameters.
-  Future<FileListResponse> listFiles([FileListQuery? query]);
+  Future<FileListResponse> listFiles(
+      [FileListQuery? query, CancelToken? cancelToken]);
 
   /// Retrieve file metadata
   ///
   /// Returns metadata for a specific file including size, type, and creation date.
-  Future<FileObject> retrieveFile(String fileId);
+  Future<FileObject> retrieveFile(String fileId, {CancelToken? cancelToken});
 
   /// Delete a file
   ///
@@ -1063,7 +1064,7 @@ abstract class FileManagementCapability {
   /// Get file content
   ///
   /// Downloads the raw content of a file as bytes.
-  Future<List<int>> getFileContent(String fileId);
+  Future<List<int>> getFileContent(String fileId, {CancelToken? cancelToken});
 }
 
 /// Content moderation capability
@@ -1078,10 +1079,12 @@ abstract class AssistantCapability {
   Future<Assistant> createAssistant(CreateAssistantRequest request);
 
   /// List assistants
-  Future<ListAssistantsResponse> listAssistants([ListAssistantsQuery? query]);
+  Future<ListAssistantsResponse> listAssistants(
+      [ListAssistantsQuery? query, CancelToken? cancelToken]);
 
   /// Retrieve an assistant
-  Future<Assistant> retrieveAssistant(String assistantId);
+  Future<Assistant> retrieveAssistant(String assistantId,
+      {CancelToken? cancelToken});
 
   /// Modify an assistant
   Future<Assistant> modifyAssistant(

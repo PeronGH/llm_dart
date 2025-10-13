@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../core/llm_error.dart';
 import 'client.dart';
 import 'config.dart';
@@ -13,13 +15,14 @@ class ElevenLabsModels {
   ElevenLabsModels(this.client, this.config);
 
   /// Get available models
-  Future<List<Map<String, dynamic>>> getModels() async {
+  Future<List<Map<String, dynamic>>> getModels(
+      {CancelToken? cancelToken}) async {
     if (config.apiKey.isEmpty) {
       throw const AuthError('Missing ElevenLabs API key');
     }
 
     try {
-      final models = await client.getList('models');
+      final models = await client.getList('models', cancelToken: cancelToken);
       return models.cast<Map<String, dynamic>>();
     } catch (e) {
       if (e is LLMError) rethrow;
@@ -28,13 +31,13 @@ class ElevenLabsModels {
   }
 
   /// Get user subscription info
-  Future<Map<String, dynamic>> getUserInfo() async {
+  Future<Map<String, dynamic>> getUserInfo({CancelToken? cancelToken}) async {
     if (config.apiKey.isEmpty) {
       throw const AuthError('Missing ElevenLabs API key');
     }
 
     try {
-      return await client.getJson('user');
+      return await client.getJson('user', cancelToken: cancelToken);
     } catch (e) {
       if (e is LLMError) rethrow;
       throw GenericError('Unexpected error: $e');
@@ -42,8 +45,9 @@ class ElevenLabsModels {
   }
 
   /// Get model information by ID
-  Future<Map<String, dynamic>?> getModelInfo(String modelId) async {
-    final models = await getModels();
+  Future<Map<String, dynamic>?> getModelInfo(String modelId,
+      {CancelToken? cancelToken}) async {
+    final models = await getModels(cancelToken: cancelToken);
 
     for (final model in models) {
       if (model['model_id'] == modelId) {
@@ -55,8 +59,9 @@ class ElevenLabsModels {
   }
 
   /// Check if a model supports TTS
-  Future<bool> modelSupportsTTS(String modelId) async {
-    final modelInfo = await getModelInfo(modelId);
+  Future<bool> modelSupportsTTS(String modelId,
+      {CancelToken? cancelToken}) async {
+    final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
     if (modelInfo == null) return false;
 
     final canDoTTS = modelInfo['can_do_text_to_speech'] as bool?;
@@ -64,8 +69,9 @@ class ElevenLabsModels {
   }
 
   /// Check if a model supports STT
-  Future<bool> modelSupportsSTT(String modelId) async {
-    final modelInfo = await getModelInfo(modelId);
+  Future<bool> modelSupportsSTT(String modelId,
+      {CancelToken? cancelToken}) async {
+    final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
     if (modelInfo == null) return false;
 
     final canDoSTT = modelInfo['can_do_voice_conversion'] as bool?;
@@ -73,8 +79,9 @@ class ElevenLabsModels {
   }
 
   /// Get recommended TTS models
-  Future<List<String>> getRecommendedTTSModels() async {
-    final models = await getModels();
+  Future<List<String>> getRecommendedTTSModels(
+      {CancelToken? cancelToken}) async {
+    final models = await getModels(cancelToken: cancelToken);
     final ttsModels = <String>[];
 
     for (final model in models) {
@@ -91,8 +98,9 @@ class ElevenLabsModels {
   }
 
   /// Get recommended STT models
-  Future<List<String>> getRecommendedSTTModels() async {
-    final models = await getModels();
+  Future<List<String>> getRecommendedSTTModels(
+      {CancelToken? cancelToken}) async {
+    final models = await getModels(cancelToken: cancelToken);
     final sttModels = <String>[];
 
     for (final model in models) {
@@ -109,8 +117,9 @@ class ElevenLabsModels {
   }
 
   /// Get model capabilities
-  Future<Map<String, bool>> getModelCapabilities(String modelId) async {
-    final modelInfo = await getModelInfo(modelId);
+  Future<Map<String, bool>> getModelCapabilities(String modelId,
+      {CancelToken? cancelToken}) async {
+    final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
     if (modelInfo == null) {
       return {
         'tts': false,
@@ -130,8 +139,9 @@ class ElevenLabsModels {
   }
 
   /// Get model languages
-  Future<List<String>> getModelLanguages(String modelId) async {
-    final modelInfo = await getModelInfo(modelId);
+  Future<List<String>> getModelLanguages(String modelId,
+      {CancelToken? cancelToken}) async {
+    final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
     if (modelInfo == null) return [];
 
     final languages = modelInfo['languages'] as List<dynamic>?;
@@ -139,21 +149,23 @@ class ElevenLabsModels {
   }
 
   /// Get model description
-  Future<String?> getModelDescription(String modelId) async {
-    final modelInfo = await getModelInfo(modelId);
+  Future<String?> getModelDescription(String modelId,
+      {CancelToken? cancelToken}) async {
+    final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
     return modelInfo?['description'] as String?;
   }
 
   /// Check if model is available for current subscription
-  Future<bool> isModelAvailable(String modelId) async {
+  Future<bool> isModelAvailable(String modelId,
+      {CancelToken? cancelToken}) async {
     try {
-      final userInfo = await getUserInfo();
+      final userInfo = await getUserInfo(cancelToken: cancelToken);
       final subscription = userInfo['subscription'] as Map<String, dynamic>?;
 
       if (subscription == null) return false;
 
       final tier = subscription['tier'] as String?;
-      final modelInfo = await getModelInfo(modelId);
+      final modelInfo = await getModelInfo(modelId, cancelToken: cancelToken);
 
       if (modelInfo == null) return false;
 

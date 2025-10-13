@@ -224,6 +224,9 @@ abstract class BaseHttpProvider implements ChatCapability {
       case DioExceptionType.badCertificate:
         _logger.warning('$providerName SSL error: ${error.message}');
         break;
+      case DioExceptionType.cancel:
+        _logger.fine('$providerName request cancelled: ${error.message}');
+        break;
       default:
         _logger.warning('$providerName error: ${error.message}');
         break;

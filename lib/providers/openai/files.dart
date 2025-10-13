@@ -41,7 +41,10 @@ class OpenAIFiles implements FileManagementCapability {
   }
 
   @override
-  Future<FileListResponse> listFiles([FileListQuery? query]) async {
+  Future<FileListResponse> listFiles([
+    FileListQuery? query,
+    CancelToken? cancelToken,
+  ]) async {
     String endpoint = 'files';
 
     if (query != null) {
@@ -54,13 +57,15 @@ class OpenAIFiles implements FileManagementCapability {
       }
     }
 
-    final responseData = await client.get(endpoint);
+    final responseData = await client.get(endpoint, cancelToken: cancelToken);
     return FileListResponse.fromOpenAI(responseData);
   }
 
   @override
-  Future<FileObject> retrieveFile(String fileId) async {
-    final responseData = await client.get('files/$fileId');
+  Future<FileObject> retrieveFile(String fileId,
+      {CancelToken? cancelToken}) async {
+    final responseData =
+        await client.get('files/$fileId', cancelToken: cancelToken);
     return FileObject.fromOpenAI(responseData);
   }
 
@@ -71,20 +76,23 @@ class OpenAIFiles implements FileManagementCapability {
   }
 
   @override
-  Future<List<int>> getFileContent(String fileId) async {
-    return await client.getRaw('files/$fileId/content');
+  Future<List<int>> getFileContent(String fileId,
+      {CancelToken? cancelToken}) async {
+    return await client.getRaw('files/$fileId/content',
+        cancelToken: cancelToken);
   }
 
   /// Get file content as string
-  Future<String> getFileContentAsString(String fileId) async {
-    final bytes = await getFileContent(fileId);
+  Future<String> getFileContentAsString(String fileId,
+      {CancelToken? cancelToken}) async {
+    final bytes = await getFileContent(fileId, cancelToken: cancelToken);
     return String.fromCharCodes(bytes);
   }
 
   /// Check if a file exists
-  Future<bool> fileExists(String fileId) async {
+  Future<bool> fileExists(String fileId, {CancelToken? cancelToken}) async {
     try {
-      await retrieveFile(fileId);
+      await retrieveFile(fileId, cancelToken: cancelToken);
       return true;
     } catch (e) {
       if (e is ResponseFormatError && e.message.contains('404')) {
@@ -95,9 +103,9 @@ class OpenAIFiles implements FileManagementCapability {
   }
 
   /// Get file size in bytes
-  Future<int?> getFileSize(String fileId) async {
+  Future<int?> getFileSize(String fileId, {CancelToken? cancelToken}) async {
     try {
-      final file = await retrieveFile(fileId);
+      final file = await retrieveFile(fileId, cancelToken: cancelToken);
       return file.sizeBytes;
     } catch (e) {
       return null;
@@ -105,8 +113,10 @@ class OpenAIFiles implements FileManagementCapability {
   }
 
   /// List files by purpose
-  Future<List<FileObject>> listFilesByPurpose(FilePurpose purpose) async {
-    final response = await listFiles(FileListQuery(purpose: purpose));
+  Future<List<FileObject>> listFilesByPurpose(FilePurpose purpose,
+      {CancelToken? cancelToken}) async {
+    final response = await listFiles(FileListQuery(purpose: purpose),
+        cancelToken: cancelToken);
     return response.data;
   }
 
@@ -146,17 +156,18 @@ class OpenAIFiles implements FileManagementCapability {
   }
 
   /// Get total storage used
-  Future<int> getTotalStorageUsed() async {
-    final response = await listFiles();
+  Future<int> getTotalStorageUsed({CancelToken? cancelToken}) async {
+    final response = await listFiles(cancelToken: cancelToken);
     return response.data
         .map((file) => file.sizeBytes)
         .fold<int>(0, (sum, bytes) => sum + bytes);
   }
 
   /// Clean up old files (older than specified days)
-  Future<List<FileDeleteResponse>> cleanupOldFiles(int olderThanDays) async {
+  Future<List<FileDeleteResponse>> cleanupOldFiles(int olderThanDays,
+      {CancelToken? cancelToken}) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: olderThanDays));
-    final response = await listFiles();
+    final response = await listFiles(cancelToken: cancelToken);
 
     final oldFiles = response.data.where((file) {
       return file.createdAt.isBefore(cutoffDate);

@@ -8,6 +8,8 @@
 /// yet support similar stateful conversation APIs.
 library;
 
+import 'package:dio/dio.dart';
+
 import '../../core/capability.dart';
 import '../../models/chat_models.dart';
 import '../../models/responses_models.dart';
@@ -53,6 +55,7 @@ abstract class OpenAIResponsesCapability {
     List<String>? include,
     int? startingAfter,
     bool stream = false,
+    CancelToken? cancelToken,
   });
 
   /// Delete a model response by ID
@@ -78,6 +81,7 @@ abstract class OpenAIResponsesCapability {
     List<String>? include,
     int limit = 20,
     String order = 'desc',
+    CancelToken? cancelToken,
   });
 
   // ========== Conversation State Management ==========
@@ -118,9 +122,10 @@ extension OpenAIResponsesCapabilityExtensions on OpenAIResponsesCapability {
   }
 
   /// Check if a response exists and is accessible
-  Future<bool> responseExists(String responseId) async {
+  Future<bool> responseExists(String responseId,
+      {CancelToken? cancelToken}) async {
     try {
-      await getResponse(responseId);
+      await getResponse(responseId, cancelToken: cancelToken);
       return true;
     } catch (e) {
       return false;
@@ -128,14 +133,16 @@ extension OpenAIResponsesCapabilityExtensions on OpenAIResponsesCapability {
   }
 
   /// Get response text directly
-  Future<String?> getResponseText(String responseId) async {
-    final response = await getResponse(responseId);
+  Future<String?> getResponseText(String responseId,
+      {CancelToken? cancelToken}) async {
+    final response = await getResponse(responseId, cancelToken: cancelToken);
     return response.text;
   }
 
   /// Get response thinking content directly
-  Future<String?> getResponseThinking(String responseId) async {
-    final response = await getResponse(responseId);
+  Future<String?> getResponseThinking(String responseId,
+      {CancelToken? cancelToken}) async {
+    final response = await getResponse(responseId, cancelToken: cancelToken);
     return response.thinking;
   }
 }

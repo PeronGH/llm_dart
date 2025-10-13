@@ -212,7 +212,8 @@ class AnthropicFiles implements FileManagementCapability {
   }
 
   @override
-  Future<FileListResponse> listFiles([FileListQuery? query]) async {
+  Future<FileListResponse> listFiles(
+      [FileListQuery? query, CancelToken? cancelToken]) async {
     String endpoint = 'files';
 
     if (query != null) {
@@ -225,7 +226,10 @@ class AnthropicFiles implements FileManagementCapability {
       }
     }
 
-    final responseData = await client.getJson(endpoint);
+    final responseData = await client.getJson(
+      endpoint,
+      cancelToken: cancelToken,
+    );
     return FileListResponse.fromAnthropic(responseData);
   }
 
@@ -235,8 +239,12 @@ class AnthropicFiles implements FileManagementCapability {
   ///
   /// Returns metadata for a specific file including size, type, and creation date.
   @override
-  Future<FileObject> retrieveFile(String fileId) async {
-    final responseData = await client.getJson('files/$fileId');
+  Future<FileObject> retrieveFile(String fileId,
+      {CancelToken? cancelToken}) async {
+    final responseData = await client.getJson(
+      'files/$fileId',
+      cancelToken: cancelToken,
+    );
     return FileObject.fromAnthropic(responseData);
   }
 
@@ -246,8 +254,10 @@ class AnthropicFiles implements FileManagementCapability {
   ///
   /// Downloads the raw content of a file as bytes.
   @override
-  Future<List<int>> getFileContent(String fileId) async {
-    return await client.getRaw('files/$fileId/content');
+  Future<List<int>> getFileContent(String fileId,
+      {CancelToken? cancelToken}) async {
+    return await client.getRaw('files/$fileId/content',
+        cancelToken: cancelToken);
   }
 
   /// Delete a file
@@ -279,9 +289,9 @@ class AnthropicFiles implements FileManagementCapability {
   }
 
   /// Check if a file exists
-  Future<bool> fileExists(String fileId) async {
+  Future<bool> fileExists(String fileId, {CancelToken? cancelToken}) async {
     try {
-      await retrieveFile(fileId);
+      await retrieveFile(fileId, cancelToken: cancelToken);
       return true;
     } catch (e) {
       return false;
@@ -289,14 +299,15 @@ class AnthropicFiles implements FileManagementCapability {
   }
 
   /// Get file content as string (for text files)
-  Future<String> getFileContentAsString(String fileId) async {
-    final bytes = await getFileContent(fileId);
+  Future<String> getFileContentAsString(String fileId,
+      {CancelToken? cancelToken}) async {
+    final bytes = await getFileContent(fileId, cancelToken: cancelToken);
     return String.fromCharCodes(bytes);
   }
 
   /// Get total storage used by all files
-  Future<int> getTotalStorageUsed() async {
-    final response = await listFiles();
+  Future<int> getTotalStorageUsed({CancelToken? cancelToken}) async {
+    final response = await listFiles(cancelToken: cancelToken);
     return response.data
         .map((file) => file.sizeBytes)
         .fold<int>(0, (sum, bytes) => sum + bytes);

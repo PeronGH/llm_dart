@@ -349,7 +349,12 @@ class OpenAIClient {
   }
 
   /// Make a GET request
-  Future<Map<String, dynamic>> get(String endpoint) async {
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
     if (config.apiKey.isEmpty) {
       throw const AuthError('Missing OpenAI API key');
     }
@@ -360,7 +365,12 @@ class OpenAIClient {
         logger.fine('OpenAI request headers: ${dio.options.headers}');
       }
 
-      final response = await dio.get(endpoint);
+      final response = await dio.get(
+        endpoint,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
 
       if (logger.isLoggable(Level.FINE)) {
         logger.fine('OpenAI HTTP status: ${response.statusCode}');
@@ -379,7 +389,10 @@ class OpenAIClient {
   }
 
   /// Make a GET request and return raw bytes
-  Future<List<int>> getRaw(String endpoint) async {
+  Future<List<int>> getRaw(
+    String endpoint, {
+    CancelToken? cancelToken,
+  }) async {
     if (config.apiKey.isEmpty) {
       throw const AuthError('Missing OpenAI API key');
     }
@@ -388,6 +401,7 @@ class OpenAIClient {
       final response = await dio.get(
         endpoint,
         options: Options(responseType: ResponseType.bytes),
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode != 200) {
@@ -527,7 +541,14 @@ class OpenAIClient {
           );
         }
       case DioExceptionType.cancel:
-        return const GenericError('Request cancelled');
+        final error = e.error;
+        final reason = e.message ??
+            (error is String
+                ? error
+                : error != null
+                    ? error.toString()
+                    : null);
+        return CancelledError(reason: reason);
       case DioExceptionType.connectionError:
         return const GenericError('Connection error');
       case DioExceptionType.badCertificate:

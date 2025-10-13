@@ -139,6 +139,7 @@ class OpenAIResponses implements ChatCapability, OpenAIResponsesCapability {
     List<String>? include,
     int? startingAfter,
     bool stream = false,
+    CancelToken? cancelToken,
   }) async {
     var endpoint = '$responsesEndpoint/$responseId';
 
@@ -163,7 +164,7 @@ class OpenAIResponses implements ChatCapability, OpenAIResponsesCapability {
       endpoint = '$endpoint?$queryString';
     }
 
-    final responseData = await client.get(endpoint);
+    final responseData = await client.get(endpoint, cancelToken: cancelToken);
     return _parseResponse(responseData);
   }
 
@@ -212,6 +213,7 @@ class OpenAIResponses implements ChatCapability, OpenAIResponsesCapability {
     List<String>? include,
     int limit = 20,
     String order = 'desc',
+    CancelToken? cancelToken,
   }) async {
     var endpoint = '$responsesEndpoint/$responseId/input_items';
 
@@ -234,7 +236,7 @@ class OpenAIResponses implements ChatCapability, OpenAIResponsesCapability {
         .join('&');
     endpoint = '$endpoint?$queryString';
 
-    final responseData = await client.get(endpoint);
+    final responseData = await client.get(endpoint, cancelToken: cancelToken);
     return ResponseInputItemsList.fromJson(responseData);
   }
 

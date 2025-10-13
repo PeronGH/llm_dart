@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:llm_dart/core/cancellation.dart';
+import 'package:llm_dart/core/llm_error.dart';
 import 'package:test/test.dart';
 
 /// Tests for cancellation support
@@ -43,6 +44,11 @@ void main() {
       expect(CancellationHelper.isCancelled(error), isTrue);
     });
 
+    test('isCancelled detects CancelledError', () {
+      final error = CancelledError();
+      expect(CancellationHelper.isCancelled(error), isTrue);
+    });
+
     test('isCancelled returns false for non-cancel errors', () {
       final error = DioException(
         requestOptions: RequestOptions(path: '/test'),
@@ -80,6 +86,20 @@ void main() {
     test('getCancellationReason returns null for non-DioException', () {
       final error = Exception('Some error');
       expect(CancellationHelper.getCancellationReason(error), isNull);
+    });
+
+    test('getCancellationReason normalizes CancelledError without reason', () {
+      final error = CancelledError();
+      expect(CancellationHelper.getCancellationReason(error),
+          equals('Request cancelled'));
+    });
+
+    test('getCancellationReason preserves CancelledError reason', () {
+      final error = CancelledError(reason: 'User cancelled operation');
+      expect(
+        CancellationHelper.getCancellationReason(error),
+        equals('User cancelled operation'),
+      );
     });
   });
 

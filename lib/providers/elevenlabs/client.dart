@@ -29,9 +29,19 @@ class ElevenLabsClient {
   Logger get logger => _logger;
 
   /// Make a GET request and return JSON response
-  Future<Map<String, dynamic>> getJson(String endpoint) async {
+  Future<Map<String, dynamic>> getJson(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await _dio.get(endpoint);
+      final response = await _dio.get(
+        endpoint,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
 
       if (response.statusCode != 200) {
         throw ProviderError(
@@ -46,9 +56,19 @@ class ElevenLabsClient {
   }
 
   /// Make a GET request and return list response
-  Future<List<dynamic>> getList(String endpoint) async {
+  Future<List<dynamic>> getList(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await _dio.get(endpoint);
+      final response = await _dio.get(
+        endpoint,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
 
       if (response.statusCode != 200) {
         throw ProviderError(

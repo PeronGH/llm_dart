@@ -44,6 +44,7 @@ library;
 export 'package:dio/dio.dart' show CancelToken;
 
 import 'package:dio/dio.dart';
+import 'llm_error.dart';
 
 /// Helper utilities for working with cancellation
 class CancellationHelper {
@@ -62,6 +63,7 @@ class CancellationHelper {
   /// }
   /// ```
   static bool isCancelled(Object error) {
+    if (error is CancelledError) return true;
     return error is DioException && CancelToken.isCancel(error);
   }
 
@@ -81,7 +83,20 @@ class CancellationHelper {
   /// ```
   static String? getCancellationReason(Object error) {
     if (!isCancelled(error)) return null;
-    final dioError = error as DioException;
-    return dioError.message;
+
+    if (error is CancelledError) {
+      return error.reason ?? 'Request cancelled';
+    }
+
+    if (error is DioException) {
+      final baseReason = error.message ??
+          (error.error is String
+              ? error.error as String
+              : error.error?.toString());
+      final normalized = CancelledError(reason: baseReason).reason;
+      return normalized ?? 'Request cancelled';
+    }
+
+    return null;
   }
 }

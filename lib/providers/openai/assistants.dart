@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../core/capability.dart';
 import '../../models/assistant_models.dart';
 import '../../models/tool_models.dart';
@@ -23,7 +25,7 @@ class OpenAIAssistants implements AssistantCapability {
 
   @override
   Future<ListAssistantsResponse> listAssistants(
-      [ListAssistantsQuery? query]) async {
+      [ListAssistantsQuery? query, CancelToken? cancelToken]) async {
     String endpoint = 'assistants';
 
     if (query != null) {
@@ -41,13 +43,17 @@ class OpenAIAssistants implements AssistantCapability {
       }
     }
 
-    final responseData = await client.get(endpoint);
+    final responseData = await client.get(endpoint, cancelToken: cancelToken);
     return ListAssistantsResponse.fromJson(responseData);
   }
 
   @override
-  Future<Assistant> retrieveAssistant(String assistantId) async {
-    final responseData = await client.get('assistants/$assistantId');
+  Future<Assistant> retrieveAssistant(String assistantId,
+      {CancelToken? cancelToken}) async {
+    final responseData = await client.get(
+      'assistants/$assistantId',
+      cancelToken: cancelToken,
+    );
     return Assistant.fromJson(responseData);
   }
 
@@ -69,8 +75,9 @@ class OpenAIAssistants implements AssistantCapability {
   }
 
   /// Get assistant by name
-  Future<Assistant?> getAssistantByName(String name) async {
-    final response = await listAssistants();
+  Future<Assistant?> getAssistantByName(String name,
+      {CancelToken? cancelToken}) async {
+    final response = await listAssistants(cancelToken: cancelToken);
 
     for (final assistant in response.data) {
       if (assistant.name == name) {
@@ -82,9 +89,10 @@ class OpenAIAssistants implements AssistantCapability {
   }
 
   /// Check if assistant exists
-  Future<bool> assistantExists(String assistantId) async {
+  Future<bool> assistantExists(String assistantId,
+      {CancelToken? cancelToken}) async {
     try {
-      await retrieveAssistant(assistantId);
+      await retrieveAssistant(assistantId, cancelToken: cancelToken);
       return true;
     } catch (e) {
       return false;
@@ -92,8 +100,9 @@ class OpenAIAssistants implements AssistantCapability {
   }
 
   /// Get assistants by model
-  Future<List<Assistant>> getAssistantsByModel(String model) async {
-    final response = await listAssistants();
+  Future<List<Assistant>> getAssistantsByModel(String model,
+      {CancelToken? cancelToken}) async {
+    final response = await listAssistants(cancelToken: cancelToken);
     return response.data
         .where((assistant) => assistant.model == model)
         .toList();
@@ -105,8 +114,10 @@ class OpenAIAssistants implements AssistantCapability {
     String? newName,
     String? newDescription,
     Map<String, String>? additionalMetadata,
+    CancelToken? cancelToken,
   }) async {
-    final original = await retrieveAssistant(assistantId);
+    final original =
+        await retrieveAssistant(assistantId, cancelToken: cancelToken);
 
     final createRequest = CreateAssistantRequest(
       model: original.model,

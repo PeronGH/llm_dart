@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../core/capability.dart';
 import '../../core/llm_error.dart';
 import '../../models/chat_models.dart';
@@ -15,8 +17,8 @@ class OpenAIModels implements ModelListingCapability {
   OpenAIModels(this.client, this.config);
 
   @override
-  Future<List<AIModel>> models() async {
-    final responseData = await client.get('models');
+  Future<List<AIModel>> models({CancelToken? cancelToken}) async {
+    final responseData = await client.get('models', cancelToken: cancelToken);
 
     // responseData is already Map<String, dynamic> from client.get()
 
@@ -51,9 +53,10 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get a specific model by ID
-  Future<AIModel?> getModel(String modelId) async {
+  Future<AIModel?> getModel(String modelId, {CancelToken? cancelToken}) async {
     try {
-      final responseData = await client.get('models/$modelId');
+      final responseData =
+          await client.get('models/$modelId', cancelToken: cancelToken);
 
       return AIModel(
         id: responseData['id'] as String,
@@ -70,25 +73,26 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Check if a model exists and is accessible
-  Future<bool> modelExists(String modelId) async {
-    final model = await getModel(modelId);
+  Future<bool> modelExists(String modelId, {CancelToken? cancelToken}) async {
+    final model = await getModel(modelId, cancelToken: cancelToken);
     return model != null;
   }
 
   /// Get models by owner
-  Future<List<AIModel>> getModelsByOwner(String owner) async {
-    final allModels = await models();
+  Future<List<AIModel>> getModelsByOwner(String owner,
+      {CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels.where((model) => model.ownedBy == owner).toList();
   }
 
   /// Get OpenAI models only
-  Future<List<AIModel>> getOpenAIModels() async {
-    return getModelsByOwner('openai');
+  Future<List<AIModel>> getOpenAIModels({CancelToken? cancelToken}) async {
+    return getModelsByOwner('openai', cancelToken: cancelToken);
   }
 
   /// Get fine-tuned models
-  Future<List<AIModel>> getFineTunedModels() async {
-    final allModels = await models();
+  Future<List<AIModel>> getFineTunedModels({CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels
         .where(
             (model) => model.ownedBy != 'openai' && model.ownedBy != 'system')
@@ -96,8 +100,8 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get models suitable for chat
-  Future<List<AIModel>> getChatModels() async {
-    final allModels = await models();
+  Future<List<AIModel>> getChatModels({CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels
         .where((model) =>
             model.id.contains('gpt') ||
@@ -107,8 +111,8 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get models suitable for embeddings
-  Future<List<AIModel>> getEmbeddingModels() async {
-    final allModels = await models();
+  Future<List<AIModel>> getEmbeddingModels({CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels
         .where((model) =>
             model.id.contains('embedding') || model.id.contains('ada'))
@@ -116,8 +120,8 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get models suitable for image generation
-  Future<List<AIModel>> getImageModels() async {
-    final allModels = await models();
+  Future<List<AIModel>> getImageModels({CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels
         .where((model) =>
             model.id.contains('dall-e') || model.id.contains('dalle'))
@@ -125,8 +129,8 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get models suitable for audio/speech
-  Future<List<AIModel>> getAudioModels() async {
-    final allModels = await models();
+  Future<List<AIModel>> getAudioModels({CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
     return allModels
         .where(
             (model) => model.id.contains('whisper') || model.id.contains('tts'))
@@ -134,9 +138,9 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Check if a model supports a specific capability
-  Future<bool> modelSupportsCapability(
-      String modelId, String capability) async {
-    final model = await getModel(modelId);
+  Future<bool> modelSupportsCapability(String modelId, String capability,
+      {CancelToken? cancelToken}) async {
+    final model = await getModel(modelId, cancelToken: cancelToken);
     if (model == null) return false;
 
     switch (capability.toLowerCase()) {
@@ -159,8 +163,9 @@ class OpenAIModels implements ModelListingCapability {
   }
 
   /// Get recommended model for a specific use case
-  Future<AIModel?> getRecommendedModel(String useCase) async {
-    final allModels = await models();
+  Future<AIModel?> getRecommendedModel(String useCase,
+      {CancelToken? cancelToken}) async {
+    final allModels = await models(cancelToken: cancelToken);
 
     switch (useCase.toLowerCase()) {
       case 'chat':

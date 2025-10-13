@@ -47,26 +47,21 @@ class OllamaClient {
   }
 
   /// Make a GET request and return JSON response
-  Future<Map<String, dynamic>> getJson(String endpoint) async {
-    try {
-      logger.fine('Ollama request: GET $endpoint');
-      final response = await dio.get(endpoint);
-
-      logger.fine('Ollama HTTP status: ${response.statusCode}');
-
-      if (response.statusCode != 200) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          message: 'Ollama API returned status ${response.statusCode}',
-        );
-      }
-
-      return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      logger.severe('HTTP request failed: ${e.message}');
-      rethrow;
-    }
+  Future<Map<String, dynamic>> getJson(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    return HttpResponseHandler.getJson(
+      dio,
+      endpoint,
+      providerName: 'Ollama',
+      logger: logger,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
   }
 
   /// Make a POST request and return raw stream for JSON streaming
