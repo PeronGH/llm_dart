@@ -34,6 +34,8 @@ import 'utils/dio/dio_proxy_test.dart' as dio_proxy_tests;
 import 'utils/capability_utils_test.dart' as capability_utils_tests;
 
 // Integration tests
+import 'integration/cancellation_integration_test.dart'
+    as cancellation_integration_tests;
 import 'integration/thinking_content_extraction_test.dart'
     as thinking_extraction_tests;
 import 'integration/thinking_tags_streaming_test.dart'
@@ -109,6 +111,7 @@ void main() {
     });
 
     group('Integration Tests', () {
+      cancellation_integration_tests.main();
       thinking_extraction_tests.main();
       thinking_streaming_tests.main();
       utf8_streaming_tests.main();

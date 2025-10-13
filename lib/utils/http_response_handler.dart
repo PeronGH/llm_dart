@@ -152,6 +152,7 @@ class HttpResponseHandler {
     Logger? logger,
     Map<String, dynamic>? queryParameters,
     Options? options,
+    CancelToken? cancelToken,
   }) async {
     final provider = providerName ?? 'Unknown';
     final log = logger ?? _logger;
@@ -165,6 +166,7 @@ class HttpResponseHandler {
         endpoint,
         queryParameters: queryParameters,
         options: options,
+        cancelToken: cancelToken,
       );
 
       if (log.isLoggable(Level.FINE)) {
